@@ -1,4 +1,5 @@
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -8,23 +9,27 @@ public class CartController {
     private CartService cartService;
 
     @GetMapping("/{id}")
-    public Cart getCartById(@PathVariable Long id) {
+    public CartDTO getCartById(@PathVariable Long id) {
         return cartService.getCartById(id);
     }
 
-    @PutMapping("/{id}")
-    public Cart updateCart(@PathVariable Long id, @RequestBody Cart cartDetails) {
-        Cart cart = cartService.getCartById(id);
-        if (cart == null) {
-            throw new NotFoundException("Cart not found with id: " + id);
+    @PostMapping
+    @Transactional
+    public CartDTO createCart(@RequestBody CartDTO cartDTO) {
+        // Sepete ekleme işlemi sırasında, sipariş miktarının stoktan fazla olup olmadığını kontrol et.
+        for (CartItemDTO item : cartDTO.getCartItems()) {
+            if (!cartService.isProductAvailable(item.getProductId(), item.getQuantity())) {
+                throw new OutOfStockException("Product with id " + item.getProductId() + " is out of stock.");
+            }
         }
-        // update cart details
-        // implement update logic as per your requirement
-        return cartService.saveCart(cart);
+
+        // Sepeti kaydet
+        return cartService.saveCart(cartDTO);
     }
 
-    @DeleteMapping("/{id}/empty")
-    public void emptyCart(@PathVariable Long id) {
-        // implement empty cart logic
+    @DeleteMapping("/{id}")
+    @Transactional
+    public void deleteCart(@PathVariable Long id) {
+        cartService.deleteCart(id);
     }
 }

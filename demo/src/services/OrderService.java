@@ -22,6 +22,7 @@ public class OrderService {
         order.setOrderDate(new Date());
         // Siparişin toplam fiyatını hesaplamak için sipariş kalemlerini dolaşabiliriz.
         double totalPrice = 0;
+        //order.getOrderItems.stream().
         for (OrderItem item : order.getOrderItems()) {
             totalPrice += item.getPriceAtOrder() * item.getQuantity();
         }

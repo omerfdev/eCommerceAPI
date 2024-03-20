@@ -6,7 +6,7 @@ import java.util.List;
 
 @Entity
 public class Cart extends BaseEntity {
-    @OneToOne
+    @OneToOne 
     private Customer customer;
     @OneToMany(mappedBy = "cart")
     private List<CartItem> cartItems = new ArrayList<>();

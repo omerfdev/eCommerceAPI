@@ -1,4 +1,5 @@
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -8,14 +9,20 @@ public class CartItemController {
     private CartItemService cartItemService;
 
     @PostMapping("/{cartId}/add")
-    public CartItem addProductToCart(@PathVariable Long cartId, @RequestBody CartItem cartItem) {
-        // implement add product to cart logic
-        return cartItemService.saveCartItem(cartItem);
+    @Transactional // rollback yapma imkanı sağlar.Bir servis çalışmadığında ondan önce çalışmış
+                   // olan servislerin yapmış olduğu değişikleri geri alır.
+    public CartItemDTO addProductToCart(@PathVariable Long cartId, @RequestBody CartItemDTO cartItemDTO) {
+        return cartItemService.saveCartItem(cartItemDTO);
     }
 
     @DeleteMapping("/{cartItemId}")
+    @Transactional
     public void removeProductFromCart(@PathVariable Long cartItemId) {
-        // implement remove product from cart logic
         cartItemService.deleteCartItem(cartItemId);
+    }
+
+    @GetMapping("/{cartItemId}")
+    public CartItemDTO getCartItemById(@PathVariable Long cartItemId) {
+        return cartItemService.getCartItemById(cartItemId);
     }
 }
