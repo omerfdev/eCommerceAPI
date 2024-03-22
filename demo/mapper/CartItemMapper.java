@@ -15,7 +15,6 @@ public class CartItemMapper {
     public CartItem toEntity(CartItemDTO dto) {
         CartItem cartItem = new CartItem();
         cartItem.setId(dto.getId());
-        // Burada cart ve product nesneleri set edilmeden önce bu nesnelerin repository'den alınması gerekebilir.
         // Ayrıca, DTO'dan gelen cartId ve productId bilgileri kullanılarak bu nesnelerin alınması sağlanabilir.
         // Burada sadece örnek olarak set edilmiştir.
         Cart cart = new Cart();

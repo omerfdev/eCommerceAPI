@@ -35,10 +35,9 @@ public class CartService {
     }
 
     // Ürünün stok durumunu kontrol eden yardımcı metod
-    private boolean isProductAvailable(Long productId, int quantity) {
-        // Gerçek uygulamada, productId'ye göre ürün stok durumu kontrol edilir.
+    private boolean isProductAvailable(Long productId, int quantity) {       
         // Eğer ürün stokta yeterli miktarda bulunuyorsa true, yoksa false döner.
-        // Bu sadece bir örnek olarak verilmiştir.
+       
         int productStock = getProductStock(productId);
         return productStock >= quantity; // Ürün stoğu, istenen miktar kadar veya daha fazlaysa true döner.
     }

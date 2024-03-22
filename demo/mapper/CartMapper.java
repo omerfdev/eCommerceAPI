@@ -19,12 +19,7 @@ public class CartMapper {
 
     public Cart toEntity(CartDTO cartDTO) {
         Cart cart = new Cart();
-        cart.setId(cartDTO.getId());
-        // Eğer Customer entity'si ile ilişkili ise, customer'ı set etmek için gerekli
-        // işlemler yapılmalıdır.
-        // Bu örnekte direkt customerId kullanılmıştır.
-        // cart.setCustomer(customerService.getCustomerById(cartDTO.getCustomerId()));
-        // // Örnek olarak
+        cart.setId(cartDTO.getId());    
         return cart;
     }
 }

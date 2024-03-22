@@ -9,7 +9,7 @@ public class CartItemController {
     private CartItemService cartItemService;
 
     @PostMapping("/{cartId}/add")
-    @Transactional // rollback yapma imkanı sağlar.Bir servis çalışmadığında ondan önce çalışmış
+    @Transactional // Rollback yapma imkanı sağlar.Bir servis çalışmadığında ondan önce çalışmış
                    // olan servislerin yapmış olduğu değişikleri geri alır.
     public CartItemDTO addProductToCart(@PathVariable Long cartId, @RequestBody CartItemDTO cartItemDTO) {
         return cartItemService.saveCartItem(cartItemDTO);
