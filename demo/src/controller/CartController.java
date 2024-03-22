@@ -22,8 +22,6 @@ public class CartController {
                 throw new OutOfStockException("Product with id " + item.getProductId() + " is out of stock.");
             }
         }
-
-        // Sepeti kaydet
         return cartService.saveCart(cartDTO);
     }
 
