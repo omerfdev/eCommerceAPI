@@ -69,6 +69,35 @@ public class OrderService {
         orderRepository.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
+    public List<OrderDTO> getAllOrdersForCustomer(Long customerId) {
+        List<Order> orders = orderRepository.findByCustomerId(customerId);
+        return orders.stream()
+                .map(OrderMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void placeOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException("Order with ID " + orderId + " not found"));
+
+   
+        order.setStatus(OrderStatus.CONFIRMED);     
+        order.setOrderDate(new Date());     
+        orderRepository.save(order);
+
+        order.getOrderItems().forEach(item -> {
+            Product product = item.getProduct();
+            product.setStock(product.getStock() - item.getQuantity());
+        });
+
+        // Stoğun güncellenmiş ürünleri veritabanına kaydet
+        productRepository.saveAll(order.getOrderItems().stream()
+                .map(OrderItem::getProduct)
+                .collect(Collectors.toList()));
+    }
+
     private String generateOrderCode() {
         return "ORD-" + System.currentTimeMillis();
     }
