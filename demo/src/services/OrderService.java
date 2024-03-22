@@ -1,5 +1,7 @@
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -7,38 +9,75 @@ public class OrderService {
     @Autowired
     private OrderRepository orderRepository;
 
-    public List<Order> getAllOrders() {
-        return orderRepository.findAll();
-    }
+    @Autowired
+    private ProductRepository productRepository;
 
-    public Order getOrderById(Long id) {
-        return orderRepository.findById(id).orElse(null);
-    }
+    @Autowired
+    private OrderItemRepository orderItemRepository;
 
-    public Order saveOrder(Order order) {
-        // Sipariş verildiğinde, siparişin alındığı tarih ve diğer detaylar ayarlanabilir.
-        // Ayrıca, siparişin toplam fiyatı hesaplanıp kaydedilebilir.
-        // Burada örnek bir işlem:
-        order.setOrderDate(new Date());
-        // Siparişin toplam fiyatını hesaplamak için sipariş kalemlerini dolaşabiliriz.
-        double totalPrice = 0;
-        //order.getOrderItems.stream().
-        for (OrderItem item : order.getOrderItems()) {
-            totalPrice += item.getPriceAtOrder() * item.getQuantity();
+    @Transactional
+    public OrderDTO createOrder(OrderDTO orderDTO) {
+        Order order = new Order();
+        order.setOrderCode(generateOrderCode());
+        order.setCustomer(orderDTO.getCustomer());
+
+        for (OrderItemDTO itemDTO : orderDTO.getOrderItems()) {
+            Product product = productRepository.findById(itemDTO.getProductId())
+                                .orElseThrow(() -> new ProductNotFoundException("Product with ID " + itemDTO.getProductId() + " not found"));
+
+            if (product.getStock() < itemDTO.getQuantity()) {
+                throw new InsufficientStockException("Insufficient stock for product with ID " + itemDTO.getProductId());
+            }
+
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProduct(product);
+            orderItem.setPriceAtOrder(product.getPrice());
+            orderItem.setQuantity(itemDTO.getQuantity());
+            orderItem.setOrder(order);
+            
+            order.getOrderItems().add(orderItem);
+
+            product.setStock(product.getStock() - itemDTO.getQuantity());
+            productRepository.save(product);
         }
+
+        order.setOrderDate(new Date());
+
+        double totalPrice = calculateTotalPrice(order);
         order.setTotalPrice(totalPrice);
-        return orderRepository.save(order);
+
+        order = orderRepository.save(order);
+
+        return OrderMapper.toDTO(order);
     }
 
+    @Transactional(readOnly = true)
+    public List<OrderDTO> getAllOrders() {
+        return orderRepository.findAll().stream()
+                .map(OrderMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public OrderDTO getOrderById(Long id) {
+        Order order = orderRepository.findById(id).orElse(null);
+        return OrderMapper.toDTO(order);
+    }
+
+    @Transactional
     public void deleteOrder(Long id) {
         orderRepository.deleteById(id);
     }
 
-    public Order getOrderForCode(String orderCode) {
-        return orderRepository.findByOrderCode(orderCode);
+    private String generateOrderCode() {
+        return "ORD-" + System.currentTimeMillis();
     }
 
-    public List<Order> getAllOrdersForCustomer(Long customerId) {
-        return orderRepository.findByCustomerId(customerId);
+    private double calculateTotalPrice(Order order) {
+        double totalPrice = 0;
+        for (OrderItem item : order.getOrderItems()) {
+            totalPrice += item.getPriceAtOrder() * item.getQuantity();
+        }
+        return totalPrice;
     }
 }
